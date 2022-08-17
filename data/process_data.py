@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine
 
+import matplotlib.pyplot as plt
+
 
 def load_data(messages_filepath, categories_filepath):
     '''
@@ -45,13 +47,18 @@ def clean_data(df):
         categories[column] = categories[column].str[-1] #apply(lambda x: x[-1]).values
         # convert column from string to numeric
         categories[column] = pd.to_numeric(categories[column], errors='coerce')
+        # convert column from numeric to binary
+        categories.loc[categories[column] > 1, column] = 1
+    # categories.plot.hist(subplots=True, layout=(5,8), figsize = (20, 32), bbox_inches='tight') 
+    # plt.savefig('plotted_categorical_data.pdf') 
+
     # drop the original categories column from `df`
     df.drop('categories', axis=1, inplace=True)
     # concatenate the original dataframe with the new `categories` dataframe
     df = pd.concat([df, categories], axis=1) #, join='outer', ignore_index=True)
     # drop duplicates
     df.drop_duplicates(inplace=True)
-    return df
+    return df, categories
 
 
 def save_data(df, database_filename):
@@ -64,7 +71,7 @@ def save_data(df, database_filename):
     '''
     # Save the clean dataset into an sqlite database.
     engine = create_engine(f'sqlite:///{database_filename}')
-    df.to_sql('DisasterResponseTable', engine, index=False)
+    df.to_sql('DisasterResponseTable', engine, index=False, if_exists='replace')
 
 
 def main():
