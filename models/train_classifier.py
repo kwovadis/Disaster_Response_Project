@@ -20,6 +20,17 @@ from sklearn.metrics import precision_score, recall_score, f1_score
 
 
 def load_data(database_filepath):
+    '''
+    Load data from an SQLite database and output training & target data (X, Y), 
+    as well as labels (Y.columns).
+    INPUT
+        database_filepath - SQLite database (ex. data/DisasterResponse.db)
+    OUTPUT
+        X  - Training data.
+        Y - Target data.
+        Y.columns - Target data labels.
+    '''
+
     # load data from database
     engine = create_engine(f'sqlite:///{database_filepath}')
     df = pd.read_sql("SELECT * FROM DisasterResponseTable", engine)
@@ -30,6 +41,14 @@ def load_data(database_filepath):
 
 
 def tokenize(text):
+    '''
+    Clean and tokenize/lemmatize the text data tbefore classifying any posts.
+    INPUT
+        text - text data that will be tokenized in the ML pipeline
+    OUTPUT
+        clean_tokens  - clean tokenized text data 
+    '''
+
     # Write a tokenization function to process your text data
     text = re.sub(r'[^\w\s]','',text)
     tokens = word_tokenize(text) 
@@ -42,6 +61,11 @@ def tokenize(text):
 
 
 def build_model():
+    '''
+    ML pipeline used to predict classifications for 36 categories.
+    OUTPUT
+        model  - ML pipeline 
+    '''
     # Build a machine learning pipeline
     model = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
@@ -51,7 +75,17 @@ def build_model():
     return model
 
 
-def evaluate_model(model, X_test, Y_test, category_names):
+def evaluate_model(model, X_test, Y_test):
+    '''
+    Predict & evaluate quality of classifications using f1 score, precision and 
+    recall for each output category.
+    INPUT
+        model - text data that will be tokenized in the ML pipeline
+        X_test - training data
+        Y_test - target data
+    OUTPUT
+        Printed statements for f1 score, precision and recall for each output category 
+    '''
     # predict on test data
     Y_pred = model.predict(X_test)
     df_Y_pred = pd.DataFrame(Y_pred, columns=Y_test.columns)
@@ -65,6 +99,14 @@ def evaluate_model(model, X_test, Y_test, category_names):
 
 
 def save_model(model, model_filepath):
+    '''
+    Save model to a pickle file.
+    INPUT
+        model - text data that will be tokenized in the ML pipeline
+        model_filepath - path to pickle file (ex. models/classifier.pkl)
+    OUTPUT
+        pickleed model file (ex. models/classifier.pkl) 
+    '''
     pickle.dump(model, open(model_filepath, "wb"))
 
 
