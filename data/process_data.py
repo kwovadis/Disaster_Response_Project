@@ -58,7 +58,7 @@ def clean_data(df):
     df = pd.concat([df, categories], axis=1) #, join='outer', ignore_index=True)
     # drop duplicates
     df.drop_duplicates(inplace=True)
-    return df, categories
+    return df
 
 
 def save_data(df, database_filename):
