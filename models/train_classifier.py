@@ -10,7 +10,7 @@ nltk.download(['punkt', 'wordnet','omw-1.4'])
 from nltk.tokenize import word_tokenize 
 from nltk.stem import WordNetLemmatizer
 
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer 
 from sklearn.ensemble import RandomForestClassifier 
@@ -66,16 +66,38 @@ def build_model():
     OUTPUT
         model  - ML pipeline 
     '''
-    # Build a machine learning pipeline
-    model = Pipeline([
-        ('vect', CountVectorizer(tokenizer=tokenize)),
-        ('tfidf', TfidfTransformer()),
+    # # Build a machine learning pipeline
+    # model = Pipeline([
+    #     ('vect', CountVectorizer(tokenizer=tokenize)),
+    #     ('tfidf', TfidfTransformer()),
+    #     ('clf', RandomForestClassifier())
+    # ])
+    # return model
+
+    pipeline = Pipeline([
+        ('features', FeatureUnion([
+
+            ('text_pipeline', Pipeline([
+                ('vect', CountVectorizer(tokenizer=tokenize)),
+                ('tfidf', TfidfTransformer())
+            ]))
+
+        ])),
+
         ('clf', RandomForestClassifier())
     ])
+
+    parameters = {
+        # 'features__text_pipeline__vect__ngram_range': ((1, 1), (1, 2)),
+        'clf__min_samples_split': [2, 4, 6]
+    }
+
+    model = GridSearchCV(pipeline, param_grid=parameters)
+
     return model
 
 
-def evaluate_model(model, X_test, Y_test):
+def evaluate_model(model, X_test, Y_test, category_names):
     '''
     Predict & evaluate quality of classifications using f1 score, precision and 
     recall for each output category.
